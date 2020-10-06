@@ -5,9 +5,9 @@ in vec2 TexCoord;
 
 out vec4 FragColor;
 
-uniform sampler2D customTexture;
-
+uniform sampler2D texture0; // a sampler holds a location value (a location references the texture unit, the default unit is GLTEXTURE0)
+uniform sampler2D texture1;
 void main()
 {
-    FragColor = texture(customTexture, TexCoord) * vec4(customColor, 1.0);
+	FragColor = mix(texture(texture0, TexCoord), texture(texture1, TexCoord), 0.2);
 }

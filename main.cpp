@@ -92,9 +92,12 @@ int main()
     glEnableVertexAttribArray(2);
 
     /// texture handling
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    unsigned int texture[2];
+    glGenTextures(2, texture);
+    
+    // After activating a texture unit, a subsequent glBindTexture call will bind that texture to the currently active texture unit.
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture[0]);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -102,14 +105,35 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load("resources/textures/container.jpg", &width, &height, &nrChannels, 0);
-    if (data)
+    if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
     else
         std::cout << "ERROR::FAILED TO LOAD TEXTURE" << std::endl;
     stbi_image_free(data);
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture[1]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load("resources/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    stbi_image_free(data);
+
     shader.use();
+    shader.setInt("texture0", 0); // the first sampler references texture unit 0
+    shader.setInt("texture1", 1); // the second sampler references texture unit 1
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
