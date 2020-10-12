@@ -8,12 +8,19 @@
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+float ratio = 0;
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        ratio = fmin(1.0f, ratio + 0.001f);
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        ratio = fmax(0.0f, ratio - 0.001f);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -134,6 +141,8 @@ int main()
     shader.use();
     shader.setInt("texture0", 0); // the first sampler references texture unit 0
     shader.setInt("texture1", 1); // the second sampler references texture unit 1
+
+    
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -142,6 +151,8 @@ int main()
         glClearColor(0.2f, 1.0f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        shader.setFloat("ratio", ratio);
+        std::cout << ratio << std::endl;
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
