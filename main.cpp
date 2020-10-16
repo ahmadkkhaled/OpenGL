@@ -3,8 +3,14 @@
 #include <glfw3.h>
 #include "shader.h"
 
+// GL Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -33,6 +39,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 int main()
 {
+    // the following snippet does the following: mat = 2 * I * Transform
+    glm::mat4 mat = glm::mat4(1.0f); /// mat = I
+    mat = glm::scale(mat, glm::vec3(2, 2, 2)); // mat = 2 * I
+    mat = glm::translate(mat, glm::vec3(1.0f, 2.0f, 3.0f)); // mat = (2I) * Transform (INCORRECT)
+    /*
+    * The advised order of operations is:
+    *   1) Scale
+    *   2) Rotate
+    *   3) Translate
+    * The earliest operation should be the rightmost matrix and the last operation should be the leftmost matrix:
+    *   M = Translate * Rotate * Scale
+    * in GLM syntax:
+    *   mat = translate(mat, ...)
+    *   mat = rotate(mat, ...)
+    *   mat = scale(mat, ...) 
+    */
 
     // glfw: initialize and configure
     glfwInit();
@@ -138,11 +160,20 @@ int main()
     }
     stbi_image_free(data);
 
+    // transformation
+    glm::mat4 transf = glm::mat4(1.0);
+    transf = glm::translate(transf, glm::vec3(0.25, 0.25, 0));
+    transf = glm::rotate(transf, glm::radians(-30.0f), glm::vec3(0.0, 0.0, 1.0f));
+    transf = glm::scale(transf, glm::vec3(0.5, 0.5, 1.0f));
+
     shader.use();
     shader.setInt("texture0", 0); // the first sampler references texture unit 0
     shader.setInt("texture1", 1); // the second sampler references texture unit 1
 
-    
+    // pass transform matrix to shader
+    unsigned int transformLoc = glGetUniformLocation(shader.getID(), "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transf));
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
