@@ -112,5 +112,7 @@ public:
 	{
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 	}
+
+	unsigned int getID() { return ID; }
 };
 #endif
